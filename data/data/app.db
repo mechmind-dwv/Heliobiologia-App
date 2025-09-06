@@ -1,0 +1,31 @@
+### Schema SQLite
+-- Tabla de actividad solar
+CREATE TABLE solar_activity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tipo_evento TEXT CHECK(tipo_evento IN ('llamarada', 'viento_solar', 'tormenta_geomagnetica')),
+    intensidad REAL,
+    fuente TEXT DEFAULT 'NASA',
+    verificada BOOLEAN DEFAULT 0
+);
+
+-- Tabla de datos de salud
+CREATE TABLE health_data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tipo_enfermedad TEXT,
+    incidencia REAL,
+    region TEXT,
+    fuente TEXT
+);
+
+-- Tabla de correlaciones
+CREATE TABLE correlations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    solar_event_id INTEGER,
+    health_event_id INTEGER,
+    fuerza_correlacion REAL,
+    significado_estadistico REAL,
+    FOREIGN KEY (solar_event_id) REFERENCES solar_activity (id),
+    FOREIGN KEY (health_event_id) REFERENCES health_data (id)
+);
