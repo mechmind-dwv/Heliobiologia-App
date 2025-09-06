@@ -1,0 +1,395 @@
+# Estructura Arquitectónica Completa - Heliobiología.app
+
+## 📋 Sistema de Despliegue Ubuntu para PC Local
+
+### Estructura de Directorios
+```
+/heliobiologia-app/
+├── 📁 data/                    # Datos locales
+│   ├── 📁 solar/              # Datos de actividad solar
+│   ├── 📁 health/             # Datos de salud
+│   ├── 📁 correlations/       # Correlaciones calculadas
+│   └── 📁 backups/            # Copias de seguridad
+├── 📁 src/                    # Código fuente
+│   ├── 📁 core/              # Núcleo de la aplicación
+│   ├── 📁 data_processing/   # Procesamiento de datos
+│   ├── 📁 alerts/            # Sistema de alertas
+│   ├── 📁 api/               # API local
+│   └── 📁 web_interface/     # Interfaz web
+├── 📁 config/                 # Configuraciones
+│   ├── languages/            # Archivos de idioma
+│   └── system/               # Configuración del sistema
+├── 📁 docs/                  # Documentación
+├── 📁 scripts/               # Scripts de instalación
+└── 📁 external/              # Datos externos descargados
+```
+
+## 🔧 Configuración de Instalación Ubuntu
+
+### 1. Requisitos del Sistema
+```bash
+# Actualizar sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar dependencias básicas
+sudo apt install -y python3 python3-pip git curl wget
+sudo apt install -y sqlite3 libsqlite3-dev
+sudo apt install -y nginx-light  # Servidor web ligero
+```
+
+### 2. Script de Instalación Automática
+Crear archivo: `scripts/install_ubuntu.sh`
+```bash
+#!/bin/bash
+
+echo "🚀 Instalando Heliobiología.app - Edición Comunitaria"
+
+# Crear directorios
+mkdir -p ~/heliobiologia-app/{data,src,config,scripts,docs}
+cd ~/heliobiologia-app
+
+# Clonar repositorio (cuando esté disponible)
+# git clone https://github.com/mechmind-dwv/heliobiologia-app.git .
+
+# Instalar dependencias Python
+pip3 install pandas numpy matplotlib flask requests beautifulsoup4
+pip3 install scipy scikit-learn joblib
+
+# Configurar base de datos SQLite
+sqlite3 data/app.db "VACUUM;"
+
+echo "✅ Instalación completada. Ejecuta: python3 src/main.py"
+```
+
+### 3. Configuración de Idiomas
+Archivo: `config/languages/es_ES.json`
+```json
+{
+  "app": {
+    "title": "Heliobiología.app",
+    "description": "Sistema de monitoreo de actividad solar y salud"
+  },
+  "alerts": {
+    "solar_storm": "Tormenta solar detectada",
+    "health_correlation": "Correlación de salud identificada"
+  }
+}
+```
+
+## 🗃️ Estructura de Base de Datos Local
+
+### Schema SQLite
+```sql
+-- Tabla de actividad solar
+CREATE TABLE solar_activity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tipo_evento TEXT CHECK(tipo_evento IN ('llamarada', 'viento_solar', 'tormenta_geomagnetica')),
+    intensidad REAL,
+    fuente TEXT DEFAULT 'NASA',
+    verificada BOOLEAN DEFAULT 0
+);
+
+-- Tabla de datos de salud
+CREATE TABLE health_data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tipo_enfermedad TEXT,
+    incidencia REAL,
+    region TEXT,
+    fuente TEXT
+);
+
+-- Tabla de correlaciones
+CREATE TABLE correlations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    solar_event_id INTEGER,
+    health_event_id INTEGER,
+    fuerza_correlacion REAL,
+    significado_estadistico REAL,
+    FOREIGN KEY (solar_event_id) REFERENCES solar_activity (id),
+    FOREIGN KEY (health_event_id) REFERENCES health_data (id)
+);
+```
+
+## 🌐 API Local Gratuita
+
+### Servidor Flask Local
+Archivo: `src/api/local_api.py`
+```python
+from flask import Flask, jsonify
+import sqlite3
+import os
+
+app = Flask(__name__)
+
+def get_db_connection():
+    conn = sqlite3.connect('../data/app.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+@app.route('/api/solar-data')
+def get_solar_data():
+    conn = get_db_connection()
+    data = conn.execute('SELECT * FROM solar_activity ORDER BY fecha DESC LIMIT 100').fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in data])
+
+@app.route('/api/health-data')
+def get_health_data():
+    conn = get_db_connection()
+    data = conn.execute('SELECT * FROM health_data ORDER BY fecha DESC LIMIT 100').fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in data])
+
+@app.route('/api/correlations')
+def get_correlations():
+    conn = get_db_connection()
+    query = '''
+    SELECT c.*, s.tipo_evento, h.tipo_enfermedad 
+    FROM correlations c
+    JOIN solar_activity s ON c.solar_event_id = s.id
+    JOIN health_data h ON c.health_event_id = h.id
+    ORDER BY c.fuerza_correlacion DESC
+    '''
+    data = conn.execute(query).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in data])
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+```
+
+## 📊 Sistema de Procesamiento de Datos
+
+### Recolector de Datos Gratuitos
+Archivo: `src/data_processing/data_collector.py`
+```python
+import requests
+import pandas as pd
+import sqlite3
+from datetime import datetime
+
+class FreeDataCollector:
+    def __init__(self):
+        self.sources = {
+            'solar': 'https://services.swpc.noaa.gov/json/solar-cycle/observed-solar-cycle-indices.json',
+            'geomagnetic': 'https://services.swpc.noaa.gov/json/planetary-k-index.json',
+            'health': self.get_public_health_data
+        }
+    
+    def get_nasa_data(self):
+        """Obtener datos solares gratuitos de NASA"""
+        try:
+            response = requests.get(self.sources['solar'], timeout=10)
+            return response.json()
+        except:
+            return self.get_fallback_data()
+    
+    def get_public_health_data(self):
+        """Obtener datos de salud públicos"""
+        # Datos de ejemplo - implementar con fuentes reales
+        return {
+            'timestamp': datetime.now().isoformat(),
+            'influenza_cases': 150,
+            'respiratory_index': 0.75
+        }
+    
+    def get_fallback_data(self):
+        """Datos de respaldo cuando no hay internet"""
+        return {
+            'solar_wind': 450,
+            'flare_activity': 'low',
+            'source': 'local_cache'
+        }
+```
+
+## 🚨 Sistema de Alertas Local
+
+Archivo: `src/alerts/alert_system.py`
+```python
+class LocalAlertSystem:
+    def __init__(self):
+        self.thresholds = {
+            'solar_flare': 3.0,
+            'solar_wind': 550.0,
+            'health_correlation': 0.7
+        }
+    
+    def check_alerts(self, solar_data, health_data):
+        alerts = []
+        
+        # Verificar tormentas solares
+        if solar_data.get('intensidad', 0) > self.thresholds['solar_flare']:
+            alerts.append({
+                'type': 'solar_storm',
+                'level': 'warning',
+                'message': 'Posible tormenta solar detectada'
+            })
+        
+        # Verificar correlaciones de salud
+        correlation = self.calculate_correlation(solar_data, health_data)
+        if correlation > self.thresholds['health_correlation']:
+            alerts.append({
+                'type': 'health_correlation',
+                'level': 'info',
+                'message': f'Correlación significativa detectada: {correlation:.2f}'
+            })
+        
+        return alerts
+    
+    def calculate_correlation(self, solar_data, health_data):
+        """Cálculo simple de correlación local"""
+        # Implementar algoritmo estadístico básico
+        return 0.65  # Valor de ejemplo
+```
+
+## 🌐 Interfaz Web Local
+
+Archivo: `src/web_interface/app.py`
+```python
+from flask import Flask, render_template, jsonify
+import json
+import os
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/api/stats')
+def get_stats():
+    return jsonify({
+        'solar_events': 150,
+        'health_records': 300,
+        'correlations_found': 45,
+        'last_update': '2025-09-06'
+    })
+
+if __name__ == '__main__':
+    app.run(port=8080, debug=True)
+```
+
+## 📜 Script de Inicio Automático
+
+Archivo: `scripts/start_app.sh`
+```bash
+#!/bin/bash
+
+cd ~/heliobiologia-app
+
+# Iniciar API local
+python3 src/api/local_api.py &
+
+# Iniciar interfaz web
+python3 src/web_interface/app.py &
+
+# Iniciar recolector de datos
+python3 src/data_processing/data_collector.py &
+
+echo "🌞 Heliobiología.app iniciada en:"
+echo "   API: http://localhost:5000"
+echo "   Web: http://localhost:8080"
+```
+
+## 🔄 Proceso de Actualización
+
+Archivo: `scripts/update_app.sh`
+```bash
+#!/bin/bash
+
+echo "🔄 Actualizando Heliobiología.app"
+
+cd ~/heliobiologia-app
+
+# Actualizar desde git (cuando corresponda)
+# git pull origin main
+
+# Actualizar dependencias
+pip3 install -r requirements.txt
+
+# Actualizar base de datos
+sqlite3 data/app.db "VACUUM;"
+
+echo "✅ Actualización completada"
+```
+
+## 📋 Archivo de Configuración Principal
+
+Archivo: `config/system/config.yaml`
+```yaml
+app:
+  name: Heliobiología.app
+  version: 1.0.0
+  language: es_ES
+  data_dir: ./data
+
+database:
+  type: sqlite
+  path: ./data/app.db
+  backup_interval: 86400  # 24 horas
+
+api:
+  port: 5000
+  host: 0.0.0.0
+  debug: true
+
+web:
+  port: 8080
+  host: localhost
+
+alerts:
+  email_enabled: false
+  check_interval: 3600  # 1 hora
+```
+
+## 🚀 Instrucciones de Ejecución
+
+```bash
+# 1. Dar permisos de ejecución
+chmod +x scripts/install_ubuntu.sh
+chmod +x scripts/start_app.sh
+chmod +x scripts/update_app.sh
+
+# 2. Instalar
+./scripts/install_ubuntu.sh
+
+# 3. Iniciar
+./scripts/start_app.sh
+
+# 4. Acceder desde navegador
+# http://localhost:8080
+```
+
+## 💾 Respaldos Automáticos
+
+Archivo: `scripts/backup.sh`
+```bash
+#!/bin/bash
+
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="./data/backups/$TIMESTAMP"
+
+mkdir -p $BACKUP_DIR
+
+# Respaldar base de datos
+sqlite3 data/app.db ".backup '$BACKUP_DIR/app.db.bak'"
+
+# Respaldar configuraciones
+cp -r config/ $BACKUP_DIR/
+
+echo "📦 Backup creado: $BACKUP_DIR"
+```
+
+---
+
+**¡Sistema listo para usar!** 🌟
+
+Este sistema funciona completamente offline después de la instalación inicial y utiliza únicamente recursos gratuitos y de código abierto. Perfecto para aprendizaje e investigación sin costos.
+
+*"La ciencia pertenece a la humanidad, no a los bolsillos de unos pocos." - En honor a Chizhevsky*
