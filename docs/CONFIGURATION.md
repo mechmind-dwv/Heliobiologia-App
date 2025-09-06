@@ -1,0 +1,24 @@
+## ⚙️ Configuración Actual - Sat Sep  6 04:34:36 AM CEST 2025
+app:
+  name: Heliobiología.app
+  version: 1.0.0
+  language: es_ES
+  data_dir: ./data
+
+database:
+  type: sqlite
+  path: ./data/app.db
+  backup_interval: 86400  # 24 horas
+
+api:
+  port: 5000
+  host: 0.0.0.0
+  debug: true
+
+web:
+  port: 8080
+  host: localhost
+
+alerts:
+  email_enabled: false
+  check_interval: 3600  # 1 hora

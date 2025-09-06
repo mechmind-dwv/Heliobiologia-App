@@ -1,36 +1,67 @@
-import requests
-import pandas as pd
 import sqlite3
 from datetime import datetime
 
-class FreeDataCollector:
+class DataCollector:
     def __init__(self):
-        self.sources = {
-            'solar': 'https://services.swpc.noaa.gov/json/solar-cycle/observed-solar-cycle-indices.json',
-            'geomagnetic': 'https://services.swpc.noaa.gov/json/planetary-k-index.json',
-            'health': self.get_public_health_data
-        }
+        self.db_path = '/home/min/Heliobiologia.app/data/app.db'
     
-    def get_nasa_data(self):
-        """Obtener datos solares gratuitos de NASA"""
-        try:
-            response = requests.get(self.sources['solar'], timeout=10)
-            return response.json()
-        except:
-            return self.get_fallback_data()
-    
-    def get_public_health_data(self):
-        """Obtener datos de salud públicos"""
-        # Datos de ejemplo - implementar con fuentes reales
-        return {
-            'timestamp': datetime.now().isoformat(),
-            'influenza_cases': 150,
-            'respiratory_index': 0.75
-        }
-    
-    def get_fallback_data(self):
-        """Datos de respaldo cuando no hay internet"""
-        return {
-            'solar_wind': 450,
-            'flare_activity': 'low',
-            'source': 'local_cache'
+    def create_test_data(self):
+        """Crear datos de prueba para demostración"""
+        conn = sqlite3.connect(self.db_path)
+        
+        # Crear tablas si no existen
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS solar_activity (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                tipo_evento TEXT,
+                intensidad REAL,
+                fuente TEXT
+            )
+        ''')
+        
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS health_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                tipo_enfermedad TEXT,
+                incidencia REAL,
+                region TEXT,
+                fuente TEXT
+            )
+        ''')
+        
+        # Datos solares de ejemplo
+        solar_events = [
+            ('llamarada', 2.5, 'NASA'),
+            ('viento_solar', 480.0, 'NASA'),
+            ('tormenta_geomagnetica', 3.2, 'Copernicus'),
+            ('llamarada', 5.1, 'SDO')
+        ]
+        
+        for event in solar_events:
+            conn.execute(
+                "INSERT INTO solar_activity (tipo_evento, intensidad, fuente) VALUES (?, ?, ?)",
+                event
+            )
+        
+        # Datos de salud de ejemplo
+        health_data = [
+            ('influenza', 0.15, 'España', 'OMS'),
+            ('covid', 0.08, 'España', 'AEMET'),
+            ('depresion', 0.12, 'Global', 'OMS')
+        ]
+        
+        for data in health_data:
+            conn.execute(
+                "INSERT INTO health_data (tipo_enfermedad, incidencia, region, fuente) VALUES (?, ?, ?, ?)",
+                data
+            )
+        
+        conn.commit()
+        conn.close()
+        print("✅ Datos de prueba creados correctamente")
+
+if __name__ == '__main__':
+    collector = DataCollector()
+    collector.create_test_data()
