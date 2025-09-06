@@ -1,0 +1,10 @@
+{
+  "app": {
+    "title": "Heliobiología.app",
+    "description": "Sistema de monitoreo de actividad solar y salud"
+  },
+  "alerts": {
+    "solar_storm": "Tormenta solar detectada",
+    "health_correlation": "Correlación de salud identificada"
+  }
+}
