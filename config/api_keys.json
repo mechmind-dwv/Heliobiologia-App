@@ -1,0 +1,5 @@
+{
+    "nasa_api_key": "TU_API_KEY_NASA",
+    "noaa_api_key": "TU_API_KEY_NOAA",
+    "openweather_api_key": "TU_API_KEY_OPENWEATHER"
+}
