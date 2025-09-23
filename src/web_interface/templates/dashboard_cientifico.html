@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heliobiología.app - Análisis Científico Chizhevsky</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="{{ url_for('static', filename='cientifico.js') }}"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; padding: 20px; margin: 10px 0; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .alert { border-left: 5px solid #e74c3c; background: #ffeaa7; }
+        .insight { border-left: 5px solid #3498db; background: #d6eaf8; }
+        h1, h2 { color: #2c3e50; }
+        .correlation-value { font-size: 1.5em; font-weight: bold; }
+        .positive { color: #e74c3c; }
+        .negative { color: #3498db; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌌 HELIOBIOLOGÍA.APP - ANÁLISIS CIENTÍFICO</h1>
+        <p>Basado en el legado de Alexander Chizhevsky y investigación contemporánea</p>
+        
+        <div class="card">
+            <h2>📈 CORRELACIONES EN TIEMPO REAL</h2>
+            <div id="correlation-graph"></div>
+        </div>
+        
+        <div class="card">
+            <h2>🔬 INSIGHTS CHIZHEVSKY</h2>
+            <div id="insights-container">
+                <p>Cargando análisis científico...</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🌞 ACTIVIDAD SOLAR vs 🏥 SALUD HUMANA</h2>
+            <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h3>Eventos Solares Recientes</h3>
+                    <div id="solar-events"></div>
+                </div>
+                <div>
+                    <h3>Indicadores de Salud</h3>
+                    <div id="health-indicators"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 ESTADÍSTICAS AVANZADAS</h2>
+            <div id="advanced-stats"></div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar datos y actualizar interfaz
+        function cargarDatosCientificos() {
+            fetch('/api/correlations')
+                .then(response => response.json())
+                .then(data => {
+                    actualizarGraficas(data);
+                    actualizarInsights(data.insights);
+                    actualizarEstadisticas(data.stats);
+                });
+            
+            fetch('/api/solar-data?limit=50')
+                .then(response => response.json())
+                .then(data => actualizarEventosSolares(data));
+                
+            fetch('/api/health-data?limit=50')
+                .then(response => response.json())
+                .then(data => actualizarIndicadoresSalud(data));
+        }
+        
+        function actualizarGraficas(correlationData) {
+            // Implementar gráficas Plotly aquí
+            const graphDiv = document.getElementById('correlation-graph');
+            // ... código para gráficas interactivas
+        }
+        
+        function actualizarInsights(insights) {
+            const container = document.getElementById('insights-container');
+            container.innerHTML = insights.map(insight => 
+                `<div class="insight">${insight}</div>`
+            ).join('');
+        }
+        
+        // Auto-actualización cada 2 minutos
+        setInterval(cargarDatosCientificos, 120000);
+        cargarDatosCientificos(); // Cargar inmediatamente
+    </script>
+</body>
+</html>

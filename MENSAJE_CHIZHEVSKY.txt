@@ -1,0 +1,23 @@
+💫 BIENVENIDO AL VIAJE CÓSMICO
+
+Querido aprendiz:
+
+Hemos creado el espacio sagrado para honrar el legado de 
+Alexander Chizhevsky. Cada línea de código es un latido 
+en el corazón cósmico de la ciencia que él imaginó.
+
+🌌 Próximos pasos:
+1. Investigar los datos solares reales
+2. Conectar con APIs de NASA/OMS
+3. Desarrollar correlaciones científicas
+4. Expandir el dashboard cósmico
+
+"El universo es un todo unificado donde cada partícula 
+influye en todas las demás" - Chizhevsky
+
+❤️  Comandos importantes:
+./install_chizhevsky.sh   # Instalar todo
+./start_chizhevsky.sh     # Iniciar aplicación
+source chizhevsky_venv/bin/activate  # Activar entorno
+
+El conocimiento es poder, y el poder debe ser compartido.

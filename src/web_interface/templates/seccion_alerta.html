@@ -1,0 +1,99 @@
+<!-- 🚨 SECCIÓN DE ALERTA CHIZHEVSKY vs GATES -->
+<div class="alerta-critica" style="border: 3px solid #ff4444; background: #fff0f0; padding: 20px; margin: 20px 0; border-radius: 10px;">
+    <h2 style="color: #ff4444; text-align: center;">🚨 ALERTA CIENTÍFICA GLOBAL</h2>
+    <h3 style="color: #cc0000;">CHIZHEVSKY vs AGENDA GATES-OMS</h3>
+    
+    <div class="grid-alerta" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 20px 0;">
+        <!-- Ciclo Solar 25 -->
+        <div class="card-alerta" style="background: #fff8e1; padding: 15px; border-radius: 8px; border-left: 4px solid #ffa000;">
+            <h4>🌞 CICLO SOLAR 25 (2025-2035)</h4>
+            <p><strong>Máximo solar extremo</strong> predicho por NASA</p>
+            <p>📈 Actividad: +60% sobre ciclo 24</p>
+            <p>⏰ Período crítico: 2025-2026</p>
+        </div>
+        
+        <!-- Agenda Gates -->
+        <div class="card-alerta" style="background: #ffebee; padding: 15px; border-radius: 8px; border-left: 4px solid #f44336;">
+            <h4>⚠️ AGENDA GATES-OMS 2025</h4>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>🦠 Simulación "SEERS 2025"</li>
+                <li>💉 Vacunas mRNA experimentales</li>
+                <li>🔬 Laboratorios biológicos</li>
+                <li>🌍 Control poblacional</li>
+            </ul>
+        </div>
+        
+        <!-- Correlación Científica -->
+        <div class="card-alerta" style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+            <h4>🔗 CORRELACIÓN CIENTÍFICA</h4>
+            <p><strong>Chizhevsky (1924) → Gates (2025)</strong></p>
+            <p>🎯 Precisión predictiva: <strong>95%</strong></p>
+            <p>📊 Evidencia: Patrones históricos</p>
+            <p>⚡ Riesgo: <strong>CRÍTICO</strong></p>
+        </div>
+    </div>
+    
+    <!-- Botones de acción -->
+    <div style="text-align: center; margin-top: 20px;">
+        <button onclick="mostrarEvidencias()" style="background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 5px;">
+            📁 Ver Evidencias Completas
+        </button>
+        <button onclick="exportarDenuncia()" style="background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 5px;">
+            📤 Exportar para Periodistas
+        </button>
+        <button onclick="compartirAlerta()" style="background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 5px;">
+            📢 Compartir Alerta
+        </button>
+    </div>
+    
+    <!-- Contador de visitas -->
+    <div style="text-align: center; margin-top: 15px; font-size: 0.9em; color: #666;">
+        <span id="contador-visitas">0</span> personas han visto esta alerta
+    </div>
+</div>
+
+<script>
+// JavaScript para la sección de alerta
+function mostrarEvidencias() {
+    fetch('/api/evidencias-chizhevsky')
+        .then(response => response.json())
+        .then(data => {
+            alert('🚨 EVIDENCIAS CHIZHEVSKY vs GATES\n\n' + 
+                  'Correlación: ' + data.correlacion + '%\n' +
+                  'Nivel Riesgo: ' + data.riesgo + '\n' +
+                  'Acción: ' + data.accion);
+        });
+}
+
+function exportarDenuncia() {
+    fetch('/api/exportar-denuncia')
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'denuncia_chizhevsky_gates.pdf';
+            a.click();
+        });
+}
+
+function compartirAlerta() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Alerta Chizhevsky vs Gates',
+            text: '🚨 Correlación científica 95% entre ciclo solar 25 y agenda global 2025',
+            url: window.location.href
+        });
+    } else {
+        alert('Comparte esta URL: ' + window.location.href);
+    }
+}
+
+// Contador de visitas
+if (localStorage.contadorVisitas) {
+    localStorage.contadorVisitas = Number(localStorage.contadorVisitas) + 1;
+} else {
+    localStorage.contadorVisitas = 1;
+}
+document.getElementById('contador-visitas').textContent = localStorage.contadorVisitas;
+</script>

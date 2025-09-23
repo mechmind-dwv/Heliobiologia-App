@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heliobiología.app - Sistema Chizhevsky (Auto-actualizable)</title>
+    <script src="{{ url_for('static', filename='auto_refresh.js') }}"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .auto-update { 
+            border: 2px solid #4CAF50; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        .pulsante { animation: pulse 2s infinite; }
+        @keyframes pulse { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.7; } 
+            100% { opacity: 1; } 
+        }
+        h1 { color: #2c3e50; }
+        .datos { font-size: 1.2em; font-weight: bold; color: #2980b9; }
+    </style>
+</head>
+<body>
+    <h1>🌌 HELIOBIOLOGÍA.APP - DATOS EN TIEMPO REAL</h1>
+    <p>🕐 <span class="datos" data-update-time>Actualizando...</span> | 🔄 Auto-actualización cada 30s</p>
+    
+    <div class="auto-update pulsante">
+        <h2>🌞 ACTIVIDAD SOLAR</h2>
+        <p><span class="datos" data-solar-count>--</span> Eventos Registrados</p>
+        <p>Último evento: <span class="datos" data-latest-solar>Cargando...</span></p>
+    </div>
+    
+    <div class="auto-update pulsante">
+        <h2>🏥 SALUD GLOBAL</h2>
+        <p><span class="datos" data-health-count>--</span> Registros</p>
+        <p>Último registro: <span class="datos" data-latest-health>Cargando...</span></p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <p><a href="/api/" target="_blank">📊 Ver API completa</a> | 
+           <a href="http://localhost:5000" target="_blank">🌐 Dashboard original</a></p>
+    </div>
+    
+    <footer style="margin-top: 30px; font-size: 0.9em; color: #7f8c8d;">
+        <p>🚀 Sistema automático Chizhevsky | 📅 Actualizado: <span data-update-time>--</span></p>
+    </footer>
+</body>
+</html>

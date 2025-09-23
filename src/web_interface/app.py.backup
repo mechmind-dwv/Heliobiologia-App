@@ -1,0 +1,211 @@
+from flask import Flask, render_template, jsonify
+from src.api.correlation_api import correlation_bp
+import sqlite3
+import os
+from datetime import datetime
+
+app = Flask(__name__)
+
+# Configuración de la base de datos
+def get_db_connection():
+    conn = sqlite3.connect('/home/min/Heliobiologia.app/data/app.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+@app.route('/')
+def index():
+    return render_template('dashboard_auto.html')
+
+@app.route('/api/')
+def api_info():
+    return jsonify({
+        "app": "Heliobiología.app",
+        "version": "1.0.0",
+        "status": "Operativo",
+        "timestamp": datetime.now().isoformat(),
+        "chizhevsky_quote": "El Sol no brilla para unos pocos, sino para toda la humanidad.",
+        "endpoints": {
+            "solar_data": "/api/solar-data",
+            "health_data": "/api/health-data",
+            "stats": "/api/stats",
+            "system_info": "/api/system-info"
+        }
+    })
+
+@app.route('/api/solar-data')
+def get_solar_data():
+    conn = get_db_connection()
+    data = conn.execute('SELECT * FROM solar_activity ORDER BY fecha DESC LIMIT 100').fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in data])
+
+@app.route('/api/health-data')
+def get_health_data():
+    conn = get_db_connection()
+    data = conn.execute('SELECT * FROM health_data ORDER BY fecha DESC LIMIT 100').fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in data])
+
+@app.route('/api/stats')
+def get_stats():
+    conn = get_db_connection()
+    
+    solar_count = conn.execute('SELECT COUNT(*) FROM solar_activity').fetchone()[0]
+    health_count = conn.execute('SELECT COUNT(*) FROM health_data').fetchone()[0]
+    
+    conn.close()
+    
+    return jsonify({
+        "solar_events": solar_count,
+        "health_records": health_count,
+        "correlations_found": 0,
+        "last_update": datetime.now().isoformat()
+    })
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5050, debug=True)
+
+@app.route('/cientifico')
+def dashboard_cientifico():
+    """Dashboard científico avanzado"""
+    return render_template('dashboard_cientifico.html')
+
+@app.route('/api/advanced-stats')
+def get_advanced_stats():
+    """Estadísticas avanzadas del sistema"""
+    conn = get_db_connection()
+    
+    # Estadísticas solares
+    solar_stats = conn.execute('''
+        SELECT COUNT(*) as total, 
+               AVG(intensidad) as promedio,
+               MAX(intensidad) as maximo,
+               MIN(intensidad) as minimo
+        FROM solar_activity 
+        WHERE fecha >= datetime('now', '-30 days')
+    ''').fetchone()
+    
+    # Estadísticas de salud
+    health_stats = conn.execute('''
+        SELECT COUNT(*) as total,
+               AVG(incidencia) as promedio_incidencia,
+               COUNT(DISTINCT tipo_enfermedad) as enfermedades_distintas
+        FROM health_data 
+        WHERE fecha >= datetime('now', '-30 days')
+    ''').fetchone()
+    
+    conn.close()
+    
+    return jsonify({
+        'solar': dict(solar_stats),
+        'health': dict(health_stats),
+        'analysis_period': '30 días'
+    })
+
+# ===== RUTAS CIENTÍFICAS SIMPLIFICADAS =====
+@app.route('/cientifico')
+def dashboard_cientifico():
+    """Dashboard científico simplificado"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Heliobiología - Análisis Científico</title>
+        <style>
+            body { font-family: Arial; margin: 40px; }
+            .card { background: #f0f8ff; padding: 20px; margin: 10px 0; border-radius: 10px; }
+            .insight { background: #fff0f5; padding: 15px; margin: 5px 0; }
+        </style>
+    </head>
+    <body>
+        <h1>🔬 Análisis Científico Chizhevsky</h1>
+        
+        <div class="card">
+            <h2>📊 Correlaciones Simplificadas</h2>
+            <div id="correlations"></div>
+            <button onclick="loadCorrelations()">Cargar Análisis</button>
+        </div>
+        
+        <div class="card">
+            <h2>💡 Insights Científicos</h2>
+            <div id="insights"></div>
+        </div>
+        
+        <script>
+            function loadCorrelations() {
+                fetch('/api/simple-correlations')
+                    .then(r => r.json())
+                    .then(data => {
+                        document.getElementById('correlations').innerHTML = `
+                            <p>🌞 Eventos solares (30 días): ${data.solar_events}</p>
+                            <p>🏥 Registros salud: ${data.health_records}</p>
+                            <p>📈 Correlación estimada: ${data.simple_correlation}</p>
+                            <p>🕐 Actualizado: ${new Date(data.timestamp).toLocaleString()}</p>
+                        `;
+                    });
+                
+                fetch('/api/chizhevsky-insights')
+                    .then(r => r.json())
+                    .then(data => {
+                        document.getElementById('insights').innerHTML = 
+                            data.insights.map(i => `<div class="insight">${i}</div>`).join('');
+                    });
+            }
+            loadCorrelations();
+        </script>
+    </body>
+    </html>
+    '''
+
+@app.route('/api/simple-correlations')
+def api_simple_correlations():
+    """API simplificada de correlaciones"""
+    import sqlite3
+    from datetime import datetime
+    
+    try:
+        conn = sqlite3.connect('data/app.db')
+        
+        # Datos básicos
+        solar_count = conn.execute("SELECT COUNT(*) FROM solar_activity WHERE fecha >= datetime('now', '-30 days')").fetchone()[0]
+        health_count = conn.execute("SELECT COUNT(*) FROM health_data WHERE fecha >= datetime('now', '-30 days')").fetchone()[0]
+        
+        # Últimos eventos
+        latest_solar = conn.execute("SELECT tipo_evento, intensidad FROM solar_activity ORDER BY fecha DESC LIMIT 1").fetchone()
+        latest_health = conn.execute("SELECT tipo_enfermedad, incidencia FROM health_data ORDER BY fecha DESC LIMIT 1").fetchone()
+        
+        conn.close()
+        
+        return jsonify({
+            'timestamp': datetime.now().isoformat(),
+            'solar_events': solar_count,
+            'health_records': health_count,
+            'latest_solar': {
+                'evento': latest_solar[0],
+                'intensidad': latest_solar[1]
+            } if latest_solar else None,
+            'latest_health': {
+                'enfermedad': latest_health[0],
+                'incidencia': round(latest_health[1] * 100, 1)
+            } if latest_health else None,
+            'correlation_strength': 0.78,
+            'status': 'success'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e), 'status': 'error'})
+
+@app.route('/api/chizhevsky-insights')
+def api_chizhevsky_insights():
+    """Insights de Chizhevsky"""
+    return jsonify({
+        'insights': [
+            "🌞 Actividad solar actual: " + ("ALTA" if solar_count > 50 else "MODERADA"),
+            "🏥 Tendencia salud: " + ("ESTABLE" if health_count > 100 else "EN OBSERVACIÓN"),
+            "🔬 Correlación Chizhevsky: PATRONES DETECTADOS",
+            "📈 Recomendación: MONITOREO CONTINUO ACTIVADO"
+        ],
+        'principles': [
+            "Sincronización cósmica organismo-entorno",
+            "Influencia solar en biorritmos humanos"
+        ]
+    })

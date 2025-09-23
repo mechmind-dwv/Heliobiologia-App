@@ -1,0 +1,7 @@
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/home/min/chizhevsky_cosmic_lab/Heliobiologia-App/src/data_processing/continuous_analyzer.py", line 4, in <module>
+    from chizhevsky_correlations import ChizhevskyCorrelationEngine
+  File "/home/min/chizhevsky_cosmic_lab/Heliobiologia-App/src/data_processing/chizhevsky_correlations.py", line 5, in <module>
+    from scipy import stats
+ModuleNotFoundError: No module named 'scipy'

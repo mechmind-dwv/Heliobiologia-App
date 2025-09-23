@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Heliobiología.app - Datos en Tiempo Real</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>🌌 HELIOBIOLOGÍA.APP - DATOS EN TIEMPO REAL</h1>
+    
+    <!-- INCLUIR SECCIÓN DE ALERTA -->
+    {% include 'seccion_alerta.html' %}
+    
+    <!-- DATOS SOLARES EN TIEMPO REAL -->
+    <div id="datos-solares">
+        <h2>🌞 ACTIVIDAD SOLAR EN TIEMPO REAL</h2>
+        <div id="solar-chart"></div>
+    </div>
+    
+    <!-- DATOS DE SALUD EN TIEMPO REAL -->
+    <div id="datos-salud">
+        <h2>🏥 SALUD GLOBAL EN TIEMPO REAL</h2>
+        <div id="health-chart"></div>
+    </div>
+
+    <script>
+    // Cargar datos en tiempo real
+    async function cargarDatos() {
+        try {
+            // Datos solares
+            const solarResponse = await fetch('/api/solar-data');
+            const solarData = await solarResponse.json();
+            console.log('Datos solares:', solarData.slice(0, 5));
+            
+            // Datos de salud  
+            const healthResponse = await fetch('/api/health-data');
+            const healthData = await healthResponse.json();
+            console.log('Datos salud:', healthData.slice(0, 5));
+            
+            // Actualizar interfaz
+            document.getElementById('contador-solar').textContent = solarData.length;
+            document.getElementById('contador-salud').textContent = healthData.length;
+            
+        } catch (error) {
+            console.error('Error cargando datos:', error);
+        }
+    }
+    
+    // Cargar datos cada 30 segundos
+    cargarDatos();
+    setInterval(cargarDatos, 30000);
+    </script>
+</body>
+</html>
